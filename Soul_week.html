@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>心靈週曆週數計算器</title>
+  <style>
+
+footer {
+  margin-top: 4rem;
+  padding: 1rem;
+  text-align: center;
+  color: #6b8f76;
+  font-size: 0.9rem;
+  border-top: 1px solid #cce3d3;
+  width: 100%;
+}
+    body {
+      font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+      background: linear-gradient(to right, #e6f4e6, #f0fdf4);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: #2d4739;
+    }
+    main {
+      background: #ffffff;
+      margin-top: 2rem;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+    }
+    .result, .verses {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: #ecfdf3;
+      border-left: 5px solid #5fbf72;
+      border-radius: 0.5rem;
+      white-space: pre-line;
+    }
+    .verses h3 {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      color: #3a5d4f;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>心靈週曆週數計算器</h1>
+    <p>輸入日期，顯示生日週與對照週</p>
+  </header>
+  <main>
+    <label for="dateInput">請輸入日期（yyyy-mm-dd）:</label>
+    <input type="date" id="dateInput" />
+    <div class="result" id="weekInfo"></div>
+    <div class="verses" id="versesDisplay"></div>
+  </main>
+
+  <script>
+    // 匯入 JSON 資料
+    const versesData = [
+  {
+    "week": 1,
+    "zh": "人世寬廣處\n那太陽向著人類的感官訴說，\n心魂深處湧出喜悅\n在凝視中，與光合而為一，\n由人類自我的護罩中，\n思想進入遼闊的空間\n隱隱繫著\n人類本質的靈性存在。",
+    "de": "Wenn aus den Weltenweiten\nDie Sonne spricht zum Menschensinn\nUnd Freude aus den Seelentiefen\nDem Licht sich eint im Schauen\nDann ziehen aus der Selbstheit Hülle\nGedanken in die Raumesfernen\nUnd binden dumpf\nDes Menschen Wesen an des Geistes Sein.",
+    "en": "When out of world-wide spaces\nThe sun speaks to the human mind,\nAnd gladness from the depths of soul\nBecomes, in seeing, one with light,\nThen rising from the sheath of self,\nThoughts soar to distances of space\nAnd dimly bind\nThe human being to the spirit's life."
+  },
+  {
+    "week": 52,
+    "zh": "從心魂深處\n那靈性轉化為人世的存在\n空間廣闊處湧出美麗，\n由上天高遠的牽引\n生命力量進入人的軀體\n靈性本質與人類存在，\n合而為一，有力地作用著。",
+    "de": "Wenn aus den Seelentiefen\nDer Geist sich wendet zu dem Weltensein\nUnd Schönheit quillt aus Raumesweiten,\nDann zieht aus Himmelsfernen\nDes Lebens Kraft in Menschenleiber\nUnd einet, machtvoll wirkend,\nDes Geistes Wesen mit dem Menschensein.",
+    "en": "When from the depths of soul\nThe spirit turns to the life of worlds\nAnd beauty wells from wide expanses,\nThen out of heaven's distances\nStreams life-strength into human bodies,\nUniting by its mighty energy\nThe spirit's being with our human life."
+  },
+  {
+    "week": 2,
+    "zh": "在感官世界外在本質中\n思想的力量隱含不彰；\n靈性世界再次發現\n祂們人類的子孫，\n在靈性中萌芽\n也必在祂之中找到\n那心魂自身的果實",
+    "de": "Ins Äussre des Sinnesalls\nVerliert Gedankenmrcht igr Eigensein；\nEs finden Geisteswelten\nDen Menschensprossen Wieder,\nDer seinen Keim in ihnen,\nDoch seine Seelenfrucht\nIn sich muss finden",
+    "en": "Out in the sense-world's glory\nThe power of thought gives up\nits separate being,\nAnd spirit worlds discover\nAgain their human offspring,\nWho germinates in them\nBut in itself must find\nThe fruit of soul."
+  },
+  {
+    "week": 51,
+    "zh": "在人類內在本質中\n流動著豐饒的覺受；\n宇宙靈性找到祂自己\n反射在人眼的鏡像裡，\n源於祂的力量\n心魂自身必重新創造。",
+    "de": "Ins Innere des Menschenwesens\nErgiesst der Sinne Reichtum sich.\nEs findet sich der Weltengeist\nIm Spiegelbild des Menschenauges,\nDas seine Kraft aus ihm\nSich neu erschaffen muss.",
+    "en": "Into our inner being\nThe riches of the senses pour.\nThe Cosmic Spirit finds itself\nReflected in the human eye,\nWhich ever must renew its strength\nFrom out that spirit source."
+  },
+  {
+    "week": 3,
+    "zh": "向著宇宙萬物，它訴說著\n在遺忘它自身之中\n憶起它的初衷\n人類的我，不斷成長\n在祢之中，釋放我\n從個人獨特的束縛裡",
+    "de": "深深探入我的真實本性\nSo fühle ich erst die Welt,\nDie ausser meiner Seele Miterleben\nAn sich nur frostig leeres Leben\nUnd ohne Macht sich offenbarend,\nIn Seelen sich von neuem schaffend,\nIn sich den Tod nur finden könnte.",
+    "en": "Thus to the World-All speaks,\nIn self-forgetfulness\nAnd mindful of its primal state,\nThe growing human I:\nIn you, if I can free myself\nFrom fetters of my selfhood,\nI fathom my essential being."
+  },
+  {
+    "week": 50,
+    "zh": "世界在成長的喜悅中\n釋放它本有的力量，\n偉大的天啟，\n向著人類的自我訴說：\n從迷人的束縛中\n將我的生命帶入你之中，\n達到我真正的目標。",
+    "de": "Es spricht zum Menschen-Ich\nSich machtvoll Offenbarend\nUnd seines Wesens Krafte Löend,\nDes Weltendaseins Werdelust:\nIn dich mein Leben Tragend\nAus Seinem Zauberbanne,\nErreiche Mein wabres Ziel.",
+    "en": "Joy in becoming of world existence\nUncovering its strength,\nUnbinding all its powers,\nSpeals to the human I:\n‘I bear in you my life\nFreed from the enchanter’s spell,\nAnd so reach my true goal..’"
+  },
+  {
+    "week": 4,
+    "zh": "我覺知到我自身的本質：\n那敏銳的感覺訴說著，\n在陽光閃耀的宇宙中\n與光之流融合；\n我的感覺獻出溫暖\n朝向思考的清澈。\n而人類與世界\n緊密合一。",
+    "de": "Ich fühle Wesen meines Wesens:\nSo spricht Empfindung,\nDie in der sonnerhellten Welt\nMit Lichtesfluten sich vereint;\nSie will dem Denken\nZur Klarheit Wärme schenken\nUnd Mensch und Welt\nIn Einheit fest verbinden.",
+    "en": "I sense a kindred nature to my own:\nThus speaks perceptive feeling\nAs in the sun-illuminated world\nIt merges with the floods of light;\nTo thinking's clarity\nMy feeling would give warmth\nAnd firmly bind as one\nThe human being and the world."
+  },
+  {
+    "week": 49,
+    "zh": "「我覺知到宇宙本質的力量：」\n那清澈的思想訴說著，\n憶起自己的靈性成長，\n在人世暗夜中\n歸向將至的世界明日\n傾聽那內在的希望之光。",
+    "de": "' Ich fühle Kraft des Weltenseins：'\nSo spricht Gedankenklarheit,\nGedenkend eignen Geistes Wachsen\nIn finstern Weltennächten,\nUnd neigt dem nahen Weltentage\nDes Innern Hoffnungsstrahlen.",
+    "en": "I feel the force of cosmic life:\nThus speaks my clarity of thought,\nRecalling its own spirit growth\nThrough nights of cosmic darkness,\nAnd to the new approach of cosmic day\nIt turns its inward rays of hope."
+  },
+  {
+    "week": 5,
+    "zh": "在光輝中，來自靈性深處\n交織豐饒的空間裡\n眾神創作展現著:\n祂向心魂的本體彰顯，\n朝天地的存在擴展\n同時甦醒的是\n來自狹隘個人的內力",
+    "de": "Im Lichte, das aus Geistestiefen,\nIn Raume fruchtbar webend\nDer Götter Schaffen offenbart:\nIn ihm erscheint der Seele Wesen\nGeweitet zu dem Weltensein\nUnd auferstanden\nAus enger Selbstheit Innenmacht.",
+    "en": "Within the light that out of spirit depths\nWeaves germinating power into space\nAnd manifests the gods' creative work:\nWithin its shine, the soul's true being\nIs widened into worldwide life\nAnd resurrected\nFrom narrow selfhood's inner power."
+  },
+  {
+    "week": 48,
+    "zh": "在光輝中，來自宇宙高處\n它流入飽滿力量的心魂，\n閃耀著世界思想的驗證\n解開心魂之謎－\n凝聚如光束般的力量，\n喚醒人們心中的慈愛。",
+    "de": "Im Lichte, das aus Weltenhöhen\nDer Seele machtvoll fliessen will,\nErscheine, lösend Seelenrätsel,\nDes Weltendenkens Sicherheit,\nVersammelnd seiner Strahlen Macht,\nIm Menschenherzen Liebe weckend.",
+    "en": "Within the light that out of world-wide heights\nWould stream with power toward the soul,\nMay certainty of cosmic thinking\nArise to solve the soul's enigmas —\nAnd focusing its mighty rays,\nAwaken love in human hearts."
+  },
+  {
+    "week": 6,
+    "zh": "從我自身狹小的限制裡\n再生並發現自身\n宇宙的啟示\n在時空的演化中；\n到處向我彰顯，\n那神性的原型\n我自身形象的真貌。",
+    "de": "Es ist erstanden aus der Eigenheit\nMein Selbst und finder sich\nAls Weltenoffenbarung\nIn Zeit- und Raumerskräften;\nDie Welt, sie zeigt mir überall\nAls göttlich Urbild\nDes eignen Abbilds Wahrheit.",
+    "en": "There has arisen from its narrow limits\nMy self and finds itself\nAs revelation of all worlds\nWithin the sway of time and space;\nThe world, as archetype divine,\nDisplays to me at every turn\nThe truth of my own likeness."
+  },
+  {
+    "week": 47,
+    "zh": "來自世界的源頭，\n生命欲再生的喜悅，\n振奮著感官的光輝。\n祂遇見我思想的力量，\n上天的威能整裝待發，\n強烈地活在我深處。",
+    "de": "\nEs will erstehen aus dem Weltenschosse,\nDen Sinnenschein erquickend, Werdelust.\nSie finde meines Denkens Kraft\nGerüstet durch die Gotteskräfte,",
+    "en": "Die kräftig mir im Innern leben.\nThere will arise out of the world's great womb,\nQuickening the senses' life, the joy of growth.\nNow may it find my strength of thought\nWell armed by powers divine\nWhich strongly live within my being."
+  },
+  {
+    "week": 7,
+    "zh": "我自身被迫要逃離\n人世光芒的強烈引誘\n來吧，預言般的感受\n用力量注入你的正確任務\n重建我內在思考的力量\n在感官的榮耀中\n將樂意失去自己",
+    "de": "Mein Selbst, es drohet zu entfliehen,\nVom Weltenlichte mächtig angezogen.\nNun trete du mein Ahnen\nIn deine Rechte kräftig ein,\nErsetze mir des Denkens Macht,\nDas in der Sinne Schein\nSich selbst verlieren will.",
+    "en": "My self is threatening to fly forth,\nLured strongly by the world's enticing light.\nCome forth, prophetic feeling,\nTake up with strength your rightful task:\nReplace in me the power of thought\nWhich in the senses' glory\nWould gladly lose itself."
+  },
+  {
+    "week": 46,
+    "zh": "那人世，被迫癱瘓\n天賦的心魂力量\n此刻現身吧，靈性深處的記憶，\n如光芒般照耀而來\n寬廣的視野強化我\n只有貫穿意志的力量\n才能護持自身",
+    "de": "Die Welt, sie drohet zu betäuben\nDer Seele eingeborene Kraft;\nNun trete du, Erinnerung,\nAus Geistestiefen leuchtend auf\nUnd stärke mir das Schauen,\nDas nur durch Willenskräfte\nSich selbst erhalten kann.",
+    "en": "The world is threatening to stun\nThe inborn forces of my soul;\nNow, memory, come forth\nFrom spirit depths, enkindling light;\nInvigorate my inward sight\nWhich only by the strength of will\nIs able to sustain itself."
+  },
+  {
+    "week": 8,
+    "zh": "感受的力量漸強\n伴隨諸神的創造\n削弱了思想的力量\n趨向渾沌的夢幻\n當神性的本質\n渴望與心魂結合\n人類的思想必須\n安於夢幻的存在",
+    "de": "Es wächst der Sinne Macht\nIm Bunde mit der Götter Schaffen,\nSie drückt des Denkens Kraft\nZur Traumes Dumpfheit mir herab.\nWenn göttlich Wesen\nSich meiner Seele einen will,\nMuss menschlich Denken\nIm Traumessein sich still bescheiden.",
+    "en": "The senses' might grows stronger\nIn union with the Gods’ creating,\nSubduing my power of thought\nTo the dullness of a dream.\nWhen being Divine\nWould with my soul be one,\nThen human thinking must\nIn dreamlike state abide."
+  },
+  {
+    "week": 45,
+    "zh": "思想的力量堅定\n伴隨靈性的誕生\n淨化了晦暗的感官魔力\n趨向徹底的清明\n當心魂的豐饒\n與人世發展結合\n感受的啟示必須\n接受思想之光",
+    "de": "Es festigt sich Gedankenmacht\nIm Bund emit der Geistgeburt;\nSie hellt der Sinne dumpfe Reize\nZur vollen Klarheit auf.\nWenn Seelenfülle\nSich mit dem Weltenwerden einen will,\nMuss Sinnesoffenbarung\nDes Denkens Licht empfangen.",
+    "en": "My power of thought grows firm\nUnited with the spirit's birth.\nIt lifts the senses' dull attractions\nTo bright-lit clarity.\nWhen soul-abundance\nDesires union with the world's becoming,\nMust senses' revelation\nReceive the light of thinking."
+  },
+  {
+    "week": 9,
+    "zh": "當我遺忘個人的褊狹意志\n宇宙的溫暖是夏日的榮光\n充滿我的靈性和心魂；\n將自己沉浸在光中\n是靈性啟示的召喚，\n直覺強烈地宣告:\n“喔 忘記你自己去發現你自己”。",
+    "de": "Vergessend mein Willenseigenheit\nErfüllet Weltenwärme sommerkündend\nMir Geist und Seelenwesen;\nIm Licht mich zu verlieren\nGebietet mir das Geistesschauen,\nUnd kraftvoll kündet Ahnung mir:\nVerliere dich, um dich zu finden.",
+    "en": "When I forget the narrow will of self,\nThe cosmic warmth that heralds Summer’s glory\nFill all my soul and spirit;\nTo lose myself in light\nIs the command of spirit vision\nAnd intuition tells me strongly:\nO lose yourself to find yourself."
+  },
+  {
+    "week": 44,
+    "zh": "追尋那感官的新魔力\n充滿心魂的清淨\n憶起靈性的誕生\n人世困擾的、突發的成長\n伴隨我思想中創生者的意志",
+    "de": "Ergreifend neue Sinnesreize\nErfüllet Seelenklarheit,\nEingedenk vollzogener Geistgeburt,\nVerwirrend sprossend Weltenwerden\nMit mienes Denkens Schöpferwillen.",
+    "en": "In searching for new senses Attractions,\nSoul-clarity would fill,\nMindful of spirit-birth attained,\nThe world's bewildering, sprouting growth\nWith the creative will of my own thingking."
+  },
+  {
+    "week": 10,
+    "zh": "在夏日光輝的高處\n那太陽在榮光中升起\n將我人類的心帶到\n遼闊無垠的空間中\n隱微的預兆在內點亮\n＂你即將覺察：\n造物者已感知到你＂",
+    "de": "Zu sommerlichen Höhen\nErhebt der Sonne leuchtend Wesen sich;\nEs nimmt mein menschlich Fühlen\nIn seine Raumesweiten mit.\nErahnend regt im Innern sich\nEmphindung, dumpf mir kündend,\nErkennen wirst du einst:\nDich fühlte jetzt ein Gotteswesen.",
+    "en": "To summer’s radiant heights\nThe sun in shining majesty ascends;\nIt takes my human feeling\nInto its own wide realms of space.\nWithin my inner being stirs\nPresentiment which herald dimly,\nYou shall in future know:\nA godly being now touched you."
+  },
+  {
+    "week": 43,
+    "zh": "在深冬裡點燃\n靈性真實生命的火熱\n它給予天地光明\n透過心力，未來的能量\n成長茁壯，人類心魂挑戰著\n以內在之火面對人世的寒冷",
+    "de": "In winterlichen Tiefen\nErwarmt des Geistes wahres Sein;\nEs gibt dem “Weltenscheine\nDurch Herzenskräfte Daseinsmächte;\nDer Weltenkälte trotzt erstarkend\nDas Seelenfeuer im Menscheninnern.",
+    "en": "In winter's depths is kindled\nTrue spirit life with glowing warmth;\nIt gives to world appearance,\nThrough force of  the heart, the power to be.\nGrown strong, the human soul defies\nWith inner fire the coldnesss of the world."
+  },
+  {
+    "week": 11,
+    "zh": "在這陽光的時刻\n由祢，去認識這智慧之道:\n獻身於人世之美，\n在祢裡面敏感地經驗著:\n人類的“我”喪失自己\n而在宇宙的“我”中發現自己。",
+    "de": "Es ist in dieser Sonnenstunde\nAn dir, die weise Kunde zu erkennen:\nAn Weltenschönheit hingegeben,\nIn dir dich fühlend zu durchleben:\nVerlieren kann das Menschen-Ich\nUnd finden sich im Welten-Ich.",
+    "en": "In this the sun's high hour it rests\nWith you to understand these words of wisdom:\nSurrender to the beauty of the world,\nBe stirred with new-enlivened feeling;\nThe human I can lose itself\nAnd find itself within the cosmic I."
+  },
+  {
+    "week": 42,
+    "zh": "在這冬日幽暗的時光中\n心魂漸強的驅迫\n顯現內在本俱的力量\n引領她在昏昧無明中前行\n因而期待\n穿越內心的溫暖\n感官的啟示",
+    "de": "Es ist in dieser Sonnenstunde\nAn dir, die weise Kunde zu erkennen:\nAn Weltenschönheit hingegeben,\nIn dir dich fühlend zu durchleben:\nVerlieren kann das Menschen-Ich\nUnd finden sich im Welten-Ich.",
+    "en": "In this the shrouding gloom of winter\nThe soul feels ardently impelled\nTo manifest its innate strength,\nTo guide itself to realms of darkness,\nAnticipating thus\nThrough warmth of heart the sense-world's\nrevelation."
+  },
+  {
+    "week": 12,
+    "zh": "那世界的美麗光芒\n驅迫我心魂深處釋放\n我內在的天賦力量\n祂們飛向世界\n帶著自我的羽翼展翅\n信任地尋找自己\n在世界的光芒與溫暖中",
+    "de": "Der Welten Schönheitsglanz,\nEr zwinget mich aus Seelentiefen,\nDes Eigenlebens Götterkräfte\nZum Weltenfluge zu entbinden;\nMich selber zu verlassen,\nVertrauend nur mich suchend\nIn Weltenlicht und Weltenwärme.",
+    "en": "The radiant beauty of the world\nCompels my inmost soul to free\nGod-given powers of my nature\nThat they may soar into the cosmos,\nTo take wing from myself\nAnd trustingly to seek myself\nIn cosmic light and cosmic warmth."
+  },
+  {
+    "week": 41,
+    "zh": "那心魂的創造力量\n從心的內在奮力地朝外，\n點燃神性的力量\n在人類生命的正道裡\n心魂形塑祂自己\n在人類的愛與作為中",
+    "de": "Der Seele Schaffensmacht,\nSie street aus dem Herzensgrunde,\nIm Menschenleben Götterkräfte\nZu rechtem Wirken Zu entflammen,\nSich selber zu gestalten\nIn Menschenliebe und im Menschenwerke.",
+    "en": "The soul's creative might\nStrives outward from the heart's own core\nTo kindle and inflame god-given powers\nIn human life to right activity;\nThe soul thus shapes itself\nIn human loving and in human working."
+  },
+  {
+    "week": 13,
+    "zh": "當我活在感官的極致裡，\n那兒燃燒著我的心魂深處\n來自靈性世界的火熱\n上天真理之道，說著:\n在靈性源頭\n去尋找你的神性連結。",
+    "de": "Und bin ich in den Sinneshöhen,\nSo flammt in meinen Seelenitiefen\nAus Geister Feuerwelten\nDer Götter Wahrheitswort:\nIn Geistesgründen suche ahnend\nDich geistverwandt zu finden",
+    "en": "And when I live in senses' heights,\nThere flames up deep within my soul\nOut of the spirit's fiery worlds\nThe gods' own word of truth:\nIn spirit sources seek expectantly\nTo find your spirit kinship."
+  },
+  {
+    "week": 40,
+    "zh": "當我活在靈性深處\n棲身心魂底層，\n那兒流洩著來自慈愛世界之心，\n宇宙之道的威力，\n去充滿自我空洞的幻影。",
+    "de": "Und bin ich in den Geistestiefen,\nErfüllt in meinen Seelengründen\nAus Herzens Liebewelten\nDer Eigenheiten leerer Wahn\nSich mit des Weltenwortes Feuerkraft.",
+    "en": "And when I live in spirit depths\nAnd dwell within my soul's foundations,\nThere streams from love-worlds of the heart,\nTo fill the vain delusion of the self,\nThe fiery power of the cosmic Word."
+  },
+  {
+    "week": 14,
+    "zh": "臣服於感官的啟示\n我失去自身存在本質的動力，\n如夢般的思考似乎\n劫持和迷惑我自身。\n卻也加速趨近了\n宇宙思想在感官中的出現",
+    "de": "An Sinnesoffenbarung hingegeben\nVerlor ich Eigenwesens Trieb,\nGedankentraum, er schien\nBetäubend mir das Selbst zu rauben,\nDoch weckend nahet schon\nIm Sinnenschein mir Weltendenken.",
+    "en": "Surrendering to senses' revelation\nI lost the drive of my own being,\nAnd dreamlike thinking seemed\nTo daze and rob me of myself.\nYet quickening there draws near\nIn sense appearance cosmic thinking."
+  },
+  {
+    "week": 39,
+    "zh": "臣服於靈性的啟示\n我獲得世界本質的光\n思想的威力逐漸淨化\n使我獲得力量將自己交給我\n同時加速了自我解脫\n那來自思想者影響的自我尊嚴",
+    "de": "An Geistesoffenbarung hingegeben\nGewinne ich des Weltenwesens Licht.\nGedankenkraft, sie wächst\nSich klärend mir mich selbst zu geben,\nUnd weckend löst sich mir\nAus Denkermacht das Selbstgefühl.",
+    "en": "Surrendering to spirit revelation\nI gain the light of cosmic being;\nThe power of thinking, growing clearer,\nGains strength to give myself to me,\nAnd quickening there frees itself\nFrom thinker's energy my sense of self."
+  },
+  {
+    "week": 15,
+    "zh": "我感覺，如魔法般交織的\n靈性，在世界的榮光裡\n為了蘊藏力量\n在感官昏昧處\n它包裹著我的存在\n那在自身狹隘範疇中的我\n無力奉獻它自身",
+    "de": "Ich fühle wie verzaubert\nIm Weltenschein des Geistes Weben:\nEs hat in Sinnesdumpfheit\nGehüllt mein Eigenwesen,\nZu Schenken mir die Kraft,\nDie, ohnmächtig sich selbst zu geben,\nMein Ich in seinen Schranken ist.",
+    "en": "I feel enchanted weaving\nOf spirit within outer glory.\nIn dullness of the senses\nIt has enwrapt my being\nIn order to bestow the strength\nWhich in its narrow bounds my “I”\nIs powerless to give itself."
+  },
+  {
+    "week": 38,
+    "zh": "在心魂的懷抱裡\n我感覺如施展魔法般\n靈性之子在心識的光輝中\n孕育著神聖的人世奧秘\n希望的天堂果實\n出自我本質的神性沃土\n歡欣地在世界的遼闊遙遠處",
+    "de": "增長茁壯\nIch fühle wie entzaubert\nDas Geisteskind im Seelenschoss;\nEs hat in Herzenshelligkeit\nGezeugt das heil’ge Weltenwort\nDer Hoffnung Himmelsfrucht,\nDie jubelnd wächst in Weltenfernen",
+    "en": "Aus meines Vesens Gottesgrund.\nI feel as from enchantment freed\nThe Spirit-child in womb of soul;\nThe Holy Word of Worlds\nIt has in heart’s bright radiance\nThe heavenly fruit of hope begotten,\nWhich growth jubilant to farthest worlds,\nOut of my being’"
+  },
+  {
+    "week": 16,
+    "zh": "帶著內在之光，那蘊含靈性的恩賜\n我神聖預感的嚴峻指令統御我\n那神性成熟的獻禮\n在心魂深處蘊釀著\n帶來自我的果實",
+    "de": "Zu bergen Geistgeschenk im Innern,\nGebietet strenge mir mein Ahnen,\nDass reifend Gottesgaben\nIn Seelengründen fruchtend\nDer Selbstheit Früchte bringen.",
+    "en": "To bear in inward keeping spirit bounty\nIs stern command of my prophetic feeling,\nThat ripened gifts divine\nMaturing in the depths of soul\nTo selfhood bring their fruits."
+  },
+  {
+    "week": 37,
+    "zh": "帶著靈性之光，在人世的冬夜裡\n我心的本能，喜樂地追求著，\n於是，閃亮的心魂種子\n紮根在人世的最底層，\n天地的奧祕，在感官昏昧處\n在所有存在中，響徹祂的讚美",
+    "de": "Zu tragen Geisteslicht in Weltenwinternacht\nErstrebet selig meines Herzens Trieb,\nDass leuchtend Seelenkeime\nIn Weltengründen wurzeln,\nUnd Gotteswort im Sinnesdunkel\nVerklärend alles Sein durchtönt.",
+    "en": "To carry spirit light into world-winter-night\nMy heart is ardently impelled,\nThat shining seeds of soul\nTake root in grounds of worlds\nAnd Word Divine through senses' darkness\nResounds, transfiguring all life."
+  },
+  {
+    "week": 17,
+    "zh": "宇宙奧義祂宣說\n我穿越感官之門\n被引入心魂底層\n以我寬闊的視野\n圓滿你的靈性深處\n以致未來 能在你之中找到我",
+    "de": "Es spricht das Weltenwort,\nDas ich durch Sinnestore\nIn Seelengründe durfte führen:\nErfülle deine Geistestiefen\nMit meinen Weltenweiten,\nZu finden einstens mich in dir.",
+    "en": "Thus speaks the cosmic Word\nThat I by grace through senses’ portals\nHave led into my inmost soul:\nImbue your spirit depths\nWith my wide world horizons\nTo find in future time myself in you."
+  },
+  {
+    "week": 36,
+    "zh": "在我深處\n那天地的奧秘\n渴望彰顯，祂說：\n伴隨靈性之光\n你此生工作的目標\n經由我，呈獻自己",
+    "de": "In meines Wesens Tiefer spricht\nZur Offenbarung drängend\nGeheimnisvoll das Weltenwort:\nErfülle deiner Arbeit Ziele\nMit meinem Geisteslichte,\nZu opfern dich durch mich.",
+    "en": "Within my being’s depth there speaks,\nMysteriously the Word of Worlds\nUrging to be revealed:\nImbue your labour’s aims\nWith spirit-light of mine,\nTo offer up yourself through me."
+  },
+  {
+    "week": 18,
+    "zh": "我能否擴展心魂\n使她能結合自己\n與那宇宙初生之道\n我預知自己必須找到力量\n去形塑我的心魂成為\n容納靈性之光的衣袍",
+    "de": "Kann ich die Seele Weiten,\nDass sie sich selbst verbindet\nEmpfangnem Welten Keimesworte?\nIch ahne, dass ich Kraft muss finden\nDie Seele würdig zu gestalten\nZum Geisteskleide sich zu bilden.",
+    "en": "Can I expand my soul\nThat it unites itself\nWith cosmic Word received as seed?\nI sense that I must find the strength\nTo fashion worthily my soul\nAs fitting raiment for the spirit."
+  },
+  {
+    "week": 35,
+    "zh": "我能否了悟生命的存在，\n於心魂創生的渴求中\n找回它自己?\n我感覺力量的注入\n讓我自己成為大我世界本身\n謙遜安居的一部分",
+    "de": "Kann ich das Sein erkennen,\nDass es sich wiederfindet,\nIm Seelenschaffensdrange？\nIch fühle, dass mir Macht verlieh'n,\nDas eigne Selbst dem Weltenselbst\nAls Glied bescheiden einzuleben.",
+    "en": "Can I know life's reality\nSo that it's found again\nWithin my soul's creative urge?\nI feel that I am granted power\nTo make my self, as humble part,\nAt home within the cosmic self."
+  },
+  {
+    "week": 19,
+    "zh": "在奧祕的記憶包裹中\n那新進接收的，\n是我如支柱般的廣大覺知：\n它可以喚醒內在\n強大的自我力量\n並將自己贈予成長中的我",
+    "de": "Geheimnisvoll das Neu-Empfang’ne\nMit der Erinn’rung zu umschliessen,\nSei meines Strebens weitrer Sinn:\nEr soll erstarkend Eigenkräfte\nIn meinem Innern wecken\nUnd werdend mich mir selber geben.",
+    "en": "In secret to encompass now\nWith memory what I've newly got,\nShall be my striving's further aim:\nThus, ever strengthening, selfhood's forces\nShall be awakened from within\nAnd growing, give me to myself."
+  },
+  {
+    "week": 34,
+    "zh": "那奧秘的老古遺業\n伴隨一再新生的本體\n從內心興奮地體驗著自己:\n化為激勵的人世力量\n展露在我生命的作為裡\n並於存在本體中雕琢成長中的我",
+    "de": "Geheimnisvoll das Alt-Bewahrte\nMit neuerstandnem Eigensein\nIm Innern sich belebend fühlen：\nEs soll erweckend Weltenkräfte\nIn meines Lebens Aussenwerk ergiessen\nUnd werdend mich ins Dasein prägen.",
+    "en": "In secret inwardly to feel\nHow all that I've preserved of old\nIs quickened by new-risen sense of self:\nThis shall, awakening, pour forth cosmic forces\nInto the outer actions of my life\nAnd growing, mould me into true existence."
+  },
+  {
+    "week": 20,
+    "zh": "僅以此，去感覺我生命的存在，\n那遠離世界的本質\n我自身，唯有死亡\n然而僅依賴我自身孤立的基礎\n也終將面臨生命的終結。",
+    "de": "So fühl ich erst mein Sein,\nDas fern vom Welten-Dasein\nIn sich, sich selbst erlöschen\nUnd bauend nur auf eignem Grunde\nIn sich, sich selbst ertöten müsste.",
+    "en": "I feel at last my life's reality\nWhich, severed from the world's existence,\nWould in itself obliterate itself,\nAnd building only on its own foundation,\nWould in itself bring death upon itself."
+  },
+  {
+    "week": 33,
+    "zh": "僅以此，去感覺這個世界，\n而沒有我心魂的親自參與，\n世界本身只是空洞冰冷、\n虛無人生的顯現；\n但心魂所獨自創生的，\n自身唯有死亡。",
+    "de": "So fühl ich erst die Welt,\nDie ausser meiner Seele Miterleben\nAn sich nur frostig leeres Leben\nUnd ohne Macht sich offenbarend,\nIn Seelen sich von neuem schaffend,\nIn sich den Tod nur finden könnte.",
+    "en": "I feel at last the world's reality\nWhich, lacking the communion of my soul,\nWould in itself be frosty, empty life,\nAnd showing itself powerless\nTo recreate itself in souls,\nWould in itself find only death."
+  },
+  {
+    "week": 21,
+    "zh": "我感覺外在力量的熟化\n堅定有力地將自己交付給我,\n我覺知種子的成熟\n也預告那充滿光明的交織",
+    "de": "在我自身能量之內。\nIch fühle fruchtend fremde Macht\nSich stärkend mir mich selbst verleihn;\nDen Keim empfind ich reifend\nUnd Ahnung lichtvoll veben",
+    "en": "Im Innern an der Selbstheit Macht.\nI feel strange power, bearing fruit\nAnd gaining strength to give myself to me.\nI sense the seed maturingAnd expectation, light-filled, weaving\nWithin me on my selfhood's power."
+  },
+  {
+    "week": 32,
+    "zh": "我感覺本身力量的熟化\n堅定有力地將自己交付給世界；\n憑藉著我獨特的存在\n於人生命運的交織中\n讓自己轉為澄淨。",
+    "de": "Ich fühle fruchtend eigne Kraft\nSich stärkend mich der Welt verleihn;\nMein Eigenwesen fühl ich kraftend\nZur Klarheit sich zu wenden\nIm Lebensschicksalsweben.",
+    "en": "I feel my own force, bearing fruit\nAnd gaining strength to give me to the world.\nMy inmost being I feel charged with power\nTo turn with clearer insight\nToward the weaving of life's destiny."
+  },
+  {
+    "week": 22,
+    "zh": "那光芒來自宇宙遼闊處\n向內心活躍地工作著\n祂朝向心魂之光形成\n同時照耀靈性深處\n為了成熟而釋放\n人類自身來自宇宙自身\n在時光歷程中圓熟",
+    "de": "Das Licht aus Weltenweiten,\nIm Innern lebt es kräftig fort:\nEs wird zum Seelenlichte\nUnd leuchtet in die Geistestiefen,\nUm Früchte zu entbinden,\nDie Menschenselbst aus Weltenselbst\nIm Zeitenlaufe reifen lassen.",
+    "en": "The light from world-wide space\nWork on within with living power\nTransformed to light of soul\nIt shines into the spirit depths\nTo bring to the fruits\nWhereby out of the self of worlds\nThe human self in course of time shall ripen"
+  },
+  {
+    "week": 31,
+    "zh": "那光芒來自靈性深處\n奮力向外如太陽般四射:\n祂朝向生命毅力形成\n同時照亮感官的昏昧處，\n為了能量而釋放，\n創造力來自心魂的驅動\n在人類的工作中圓熟。",
+    "de": "Das Licht aus Geistestiefen,\nNach aussen strebt es sonnenhaft:\nEs wird zur Lebenswillenskraft\nUnd leuchtet in der Sinne Dumpfheit,\nUm Kräfte zu entbinden,\nDie Schaffensmächte aus Seelentrieben\nIm Menschenwerke reifen lassen.",
+    "en": "The light from spirit depths\nStrives to ray outwards, sun-imbued;\nTransformed to forceful will of life\nIt shines into the senses' dullness\nTo bring to birth the powers\nWhereby creative forces, soul-impelled,\nShall ripen into human deeds."
+  },
+  {
+    "week": 23,
+    "zh": "在秋日氣息中沉澱自己\n那感官的適意追逐；\n光芒閃耀中\n薄霧晦暗了面紗。\n在空間遼闊中我看向\n自身秋日的冬眠\n那夏日也將自己交託給我。",
+    "de": "Es dämpfet herbstlich sich\nDer Sinne Reizesstreben;\nIn Lichtesoffenbarung mischen\nDer Nebel dumpfe Schleier sich.\nIch selber schau in Raumesweiten\nDes Herbstes Winterschlaf\nDer Sommer hat an mich\nSich selber hingegeben.",
+    "en": "There dims in damp autumnal air\nThe senses' luring magic;\nThe light's revealing radiance\nIs dulled by hazy veils of mist.\nIn distances around me I can see\nThe autumn's winter sleep;\nThe summer's life has yielded\nItself into my keeping."
+  },
+  {
+    "week": 30,
+    "zh": "在心魂的光芒中萌生\n那醇熟的思想果實\n在自知自信中\n所有的感覺轉化了；\n我能歡欣地感受到\n這秋日的靈性覺醒：\n那冬日喚起我內在\n心魂的夏日",
+    "de": "Es spriessen mir im Seelensonnenlicht\nDes Denkens reife Früchte,\nIn Selbstbewusstseins Sicherheit\nVerwandelt alles Fühlen sich.\nEmpfinden kann ich freudevoll\nDes Herbstes Geisterwachen:\nDer Winter wird in mir\nDen Seelensommer wecken.",
+    "en": "There flourish in the sunlight of my soul\nThe ripened fruits of thinking;\nTo conscious self-assurance\nThe flow of feeling is transformed.\nI can perceive now joyfully\nThe autumn's spirit-waking:\nThe winter will arouse in me\nThe summer of the soul"
+  },
+  {
+    "week": 24,
+    "zh": "在永恆持續的自我創新中\n心魂逐漸自我覺察；\n宇宙的精神，努力著，\n藉由自我發現更新自己，\n從幽暗處鍛鍊出心魂\n自身感官的意志果實。",
+    "de": "Sich selbst erschaffend stets\nWird Seelensein sich selbst gewahr；\nDer Weltengeist, er strebet fort，\nIn Selbsterkenntnis neu belebt，\nUnd schafft aus Seelenfinsternis\nDes Selbstsinns Willensfrucht.",
+    "en": "Unceasingly itself creating\nSoul life becomes aware of self；\nThe cosmic spirit, striving on,\nRenews itself by self-cognition,\nAnd from the darkness of the soul\nCreates the fruit of self-engendered will."
+  },
+  {
+    "week": 29,
+    "zh": "思想之光自身\n從內心強烈點燃，\n出自宇宙力量根源的，\n如今于我，是親身體證的夏日遺光，\n是寓意深遠的秋日寧靜，\n也是詮釋宣說的冬日希望。",
+    "de": "Sich selbst des Denkens Leuchten\nIm Innern kraftvoll zu entfachen,\nErlebtes sinnvoll deutend\nAus Weltengeistes Kräftequell,\nIst mir nun Sommererbe,\nIst Herbstesruhe und auch Winterhoffnung.",
+    "en": "To fan the spark of thinking into flame\nBy my own strong endeavor,\nTo read life's inner meaning\nOut of the cosmic spirit's fount of strength:\nThis is my summer heritage,\nMy autumn solace, and my winter hope."
+  },
+  {
+    "week": 25,
+    "zh": "我如今可以回歸自己\n以及那明亮寬廣的內在之光\n在時空幽暗中。\n自然萬物趨於入眠，\n心魂深處須保持醒覺\n這醒覺如同帶著太陽的火光\n穿越冬日的寒流。",
+    "de": "Ich darf nun mir gehoren\nUnd leuchtend breiten Innenlicht\nIn Raumes- und in Zeitenfinsternis.\nZum Schlafe drangt naturlich Wesen,\nDer Seele Tiefen sollen wachen\nUnd wachend tragen Sonnengluten\nIn kalte Winterfluten.",
+    "en": "I can belong now to myself\nAnd shining spread my inner light\nInto the dark of space and time.\nToward sleep is urging all creation,\nBut inmost soul must stay awake\nAnd carry wakefully sun's glowing\nInto the winter's icy flowing."
+  },
+  {
+    "week": 28,
+    "zh": "我可以從內在的新生中\n感覺自我本體的寬廣\n和飽滿能量的思想之光\n來自心靈如太陽般的威力\n生命之謎消解奉獻，\n幫助那曾因期待而折翼的人們，\n實踐他們的願望。",
+    "de": "Ich kann im Innern neu belebt\nErfühlen eignen Wesens Weiten\nUnd krafterfüllt Gedankenstrahlen\nAus Seelensonnenmacht\nDen Lebensrätseln lösend spenden,\nErfüllung manchem Wunsche leihen,\nDem Hoffnung schon die Schwingen lähmte.",
+    "en": "I can, in newly quickened inner life,\nSense wide horizons in myself.\nThe force and radiance of my thought —\nComing from soul's sun power —\nCan solve the mysteries of life,\nAnd grant fulfillment now to wishes\nWhose wings have long been lamed by hope."
+  },
+  {
+    "week": 26,
+    "zh": "大自然啊！你那母親般的本性，\n我帶著你在我的意志裡；\n而我意志火熱的能量，\n淬鍊著我靈性的趨力，\n它孕育出對自身的覺醒，\n在我之中掌握我自己。",
+    "de": "Natur, dein mütterliches Sein,\nIch trage es in meinem Willenswesen;\nUnd meines Willens Feuermacht,\nSie stählet meines Geistes Triebe,\nDass sie gebären Selbstgefühl,\nZu tragen mich in mir.",
+    "en": "O Nature, your maternal life,\nI bear within the essence of my will﹔\nAnd my will's fiery energy,\nShall steel my spirit striving,\nThat sense of self springs forth from it,\nTo hold me in myself."
+  },
+  {
+    "week": 27,
+    "zh": "去探索我本質的深井\n鼓舞了預言般的渴望\n在自我映照中，發現自己\n猶如種子成為夏日陽光的贈禮\n在秋意裡溫暖地活著\n成為我心魂的驅力",
+    "de": "In meines Wesens Tiefen dringen:\nErregt ein ahnungsvolles Sehnen,\nDass ich mich selbstbetrachtend finde,\nAls Sommersonnengabe, die als Keim\nIn Herbstesstimmung wärmend lebt\nAls meiner Seele Kräftetrieb.",
+    "en": "When to my being's depths I penetrate,\nThere stirs expectant longing\nThat self-observing, I may find myself\nAs gift of summer sun, a seed\nThat warming lives in autumn mood\nAs germinating force of soul."
+  }
+];
+
+    function calculateEaster(year) {
+      const a = year % 19;
+      const b = Math.floor(year / 100);
+      const c = year % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const month = Math.floor((h + l - 7 * m + 114) / 31);
+      const day = ((h + l - 7 * m + 114) % 31) + 1;
+      return new Date(year, month - 1, day);
+    }
+
+    function getCustomWeekNumber(dateObj) {
+      let inputDate = dateObj;
+      let currentYear = inputDate.getFullYear();
+
+      while (true) {
+        let easter = calculateEaster(currentYear);
+        let firstMonday = new Date(easter);
+        firstMonday.setDate(firstMonday.getDate() + ((8 - easter.getDay()) % 7));
+
+        if (inputDate < firstMonday) {
+          currentYear -= 1;
+        } else if (inputDate >= calculateEaster(currentYear + 1)) {
+          currentYear += 1;
+        } else {
+          break;
+        }
+      }
+
+      let easter = calculateEaster(currentYear);
+      let firstMonday = new Date(easter);
+      firstMonday.setDate(firstMonday.getDate() + ((8 - easter.getDay()) % 7));
+
+      const diffDays = Math.floor((inputDate - firstMonday) / (1000 * 60 * 60 * 24));
+      return Math.floor(diffDays / 7) + 1;
+    }
+
+    function getCorrespondingWeek(week) {
+      return 53 - week;
+    }
+
+    document.getElementById("dateInput").addEventListener("change", function () {
+      const value = this.value;
+      if (!value) return;
+      const dateObj = new Date(value);
+      const week = getCustomWeekNumber(dateObj);
+      const refWeek = getCorrespondingWeek(week);
+      
+      document.getElementById("weekInfo").innerText = `${value} 是第 ${week} 週，對照週第 ${refWeek} 週。`;
+
+      const weekData = versesData.find(item => item.week === week);
+      const refData = versesData.find(item => item.week === refWeek);
+
+      document.getElementById("versesDisplay").innerHTML = `
+        <h3>第 ${week} 週</h3>
+        <strong>中文：</strong><div>${weekData?.zh || '無資料'}</div>
+        <strong>Deutsch：</strong><div>${weekData?.de || 'Keine Daten'}</div>
+        <strong>English：</strong><div>${weekData?.en || 'No data'}</div>
+        <h3>對照週 第 ${refWeek} 週</h3>
+        <strong>中文：</strong><div>${refData?.zh || '無資料'}</div>
+        <strong>Deutsch：</strong><div>${refData?.de || 'Keine Daten'}</div>
+        <strong>English：</strong><div>${refData?.en || 'No data'}</div>
+      `;
+    });
+  </script>
+</body>
+<footer>
+  <p>&copy; Fong 2025 version: 1.0.0</p>
+</footer>
+</html>
